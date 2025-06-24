@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body{font-family:Arial;margin:0;padding:20px;display:flex;flex-direction:column;align-items:center}
+    .wrapper{display:flex;gap:30px;margin-bottom:30px}
+    form{display:grid;gap:10px;width:300px}
+    input,select{padding:8px;border:1px solid #ddd;border-radius:4px}
+    button{padding:10px;background:#4CAF50;color:white;border:none;border-radius:4px;cursor:pointer}
+    .card{width:300px;height:180px;border-radius:10px;background:linear-gradient(45deg,#2c3e50,#4ca1af);padding:15px;color:white;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 4px 8px rgba(0,0,0,0.2);position:relative}
+    .logo{height:30px;margin-bottom:10px;object-fit:contain}
+    .card-number{font-size:18px;letter-spacing:2px;margin:15px 0}
+    .card-footer{display:flex;justify-content:space-between}
+    .chip{width:40px;height:30px;background:gold;border-radius:5px}
+    table{width:100%;border-collapse:collapse;margin-top:20px}
+    th,td{border:1px solid #ddd;padding:8px;text-align:left}
+    th{background-color:#f2f2f2}
+    .error{color:red;font-size:12px;display:none}
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <form id="cardForm">
+      <h2>Данные карты</h2>
+      
+      <label for="bank">Банк:</label>
+      <select id="bank" required>
+        <option value="">Выберите банк</option>
+        <option value="sber">Сбербанк</option>
+        <option value="tinkoff">Тинькофф</option>
+        <option value="alfa">Альфа-Банк</option>
+      </select>
+      <div id="bankError" class="error">Выберите банк</div>
+      
+      <label for="system">Платежная система:</label>
+      <select id="system" required>
+        <option value="">Выберите систему</option>
+        <option value="visa">VISA</option>
+        <option value="mastercard">MasterCard</option>
+        <option value="mir">Мир</option>
+      </select>
+      <div id="systemError" class="error">Выберите платежную систему</div>
+      
+      <label for="number">Номер карты:</label>
+      <input type="text" id="number" placeholder="0000 0000 0000 0000" maxlength="19" required>
+      <div id="numberError" class="error">Введите 16 цифр</div>
+      
+      <label for="name">Имя держателя:</label>
+      <input type="text" id="name" placeholder="IVAN IVANOV" required>
+      <div id="nameError" class="error">Введите имя</div>
+      
+      <label for="expiry">Срок действия:</label>
+      <input type="text" id="expiry" placeholder="MM/YY" maxlength="5" required>
+      <div id="expiryError" class="error">Введите срок в формате MM/YY</div>
+      
+      <button type="submit">Добавить карту</button>
+    </form>
+    
+    <div class="card">
+      <div id="bankLogo" class="logo"></div>
+      <div id="systemLogo" class="logo" style="position:absolute;right:15px;top:15px"></div>
+      <div class="chip"></div>
+      <div id="previewNumber" class="card-number">•••• •••• •••• ••••</div>
+      <div class="card-footer">
+        <div id="previewName">FULL NAME</div>
+        <div id="previewExpiry">MM/YY</div>
+      </div>
+    </div>
+  </div>
+  
+  <table id="cardsTable">
+    <thead>
+      <tr>
+        <th>Банк</th>
+        <th>Система</th>
+        <th>Номер</th>
+        <th>Держатель</th>
+        <th>Срок</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+const form=document.getElementById('cardForm')
+const table=document.getElementById('cardsTable').getElementsByTagName('tbody')[0]
+
+const bankLogos={
+  sber:'https://upload.wikimedia.org/wikipedia/commons/3/3f/Sberbank_Logo_2020.svg',
+  tinkoff:'https://upload.wikimedia.org/wikipedia/commons/5/5c/Tinkoff_Bank_logo.svg',
+  alfa:'https://upload.wikimedia.org/wikipedia/commons/4/40/Alfa-Bank_logo.svg'
+}
+
+const systemLogos={
+  visa:'https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg',
+  mastercard:'https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg',
+  mir:'https://upload.wikimedia.org/wikipedia/commons/3/36/Mir-logo.SVG.svg'
+}
+
+document.getElementById('number').addEventListener('input',function(e){
+  let v=e.target.value.replace(/\s+/g,'').replace(/[^0-9]/gi,'')
+  if(v.length>16)v=v.substr(0,16)
+  let f=''
+  for(let i=0;i<v.length;i++){
+    if(i>0&&i%4===0)f+=' '
+    f+=v[i]
+  }
+  e.target.value=f
+  document.getElementById('previewNumber').textContent=f||'•••• •••• •••• ••••'
+})
+
+document.getElementById('name').addEventListener('input',function(e){
+  document.getElementById('previewName').textContent=e.target.value.toUpperCase()||'FULL NAME'
+})
+
+document.getElementById('expiry').addEventListener('input',function(e){
+  document.getElementById('previewExpiry').textContent=e.target.value||'MM/YY'
+})
+
+document.getElementById('bank').addEventListener('change',function(e){
+  const img=document.getElementById('bankLogo')
+  if(e.target.value&&bankLogos[e.target.value]){
+    img.innerHTML=`<img src="${bankLogos[e.target.value]}" class="logo" alt="bank">`
+  }else{
+    img.innerHTML=''
+  }
+})
+
+document.getElementById('system').addEventListener('change',function(e){
+  const img=document.getElementById('systemLogo')
+  if(e.target.value&&systemLogos[e.target.value]){
+    img.innerHTML=`<img src="${systemLogos[e.target.value]}" class="logo" alt="system">`
+  }else{
+    img.innerHTML=''
+  }
+})
+
+form.addEventListener('submit',function(e){
+  e.preventDefault()
+  let valid=true
+
+  if(!document.getElementById('bank').value){
+    document.getElementById('bankError').style.display='block'
+    valid=false
+  }else{
+    document.getElementById('bankError').style.display='none'
+  }
+
+  if(!document.getElementById('system').value){
+    document.getElementById('systemError').style.display='block'
+    valid=false
+  }else{
+    document.getElementById('systemError').style.display='none'
+  }
+
+  const num=document.getElementById('number').value.replace(/\s/g,'')
+  if(num.length!==16){
+    document.getElementById('numberError').style.display='block'
+    valid=false
+  }else{
+    document.getElementById('numberError').style.display='none'
+  }
+
+  if(!document.getElementById('name').value){
+    document.getElementById('nameError').style.display='block'
+    valid=false
+  }else{
+    document.getElementById('nameError').style.display='none'
+  }
+
+  const expiry=document.getElementById('expiry').value
+  if(!/^\d{2}\/\d{2}$/.test(expiry)){
+    document.getElementById('expiryError').style.display='block'
+    valid=false
+  }else{
+    document.getElementById('expiryError').style.display='none'
+  }
+
+  if(valid){
+    const row=table.insertRow()
+    row.insertCell().textContent=document.getElementById('bank').options[document.getElementById('bank').selectedIndex].text
+    row.insertCell().textContent=document.getElementById('system').options[document.getElementById('system').selectedIndex].text
+    row.insertCell().textContent=document.getElementById('number').value
+    row.insertCell().textContent=document.getElementById('name').value
+    row.insertCell().textContent=document.getElementById('expiry').value
+
+    form.reset()
+    document.getElementById('bankLogo').innerHTML=''
+    document.getElementById('systemLogo').innerHTML=''
+    document.getElementById('previewNumber').textContent='•••• •••• •••• ••••'
+    document.getElementById('previewName').textContent='FULL NAME'
+    document.getElementById('previewExpiry').textContent='MM/YY'
+  }
+})
+</script>
+</body>
+</html>
